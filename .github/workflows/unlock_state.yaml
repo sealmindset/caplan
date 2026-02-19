@@ -1,0 +1,20 @@
+name: Unlock State
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: 'Target environment state.'
+        required: true
+      lock_id:
+        description: 'Nonce Id of the Lock on the state file.'
+        required: true
+
+jobs:
+  unlock:
+    uses: SleepNumberInc/terraform-unlock-gha-workflow/.github/workflows/unlock_state.yaml@v2
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      lock_id: ${{ github.event.inputs.lock_id }}
+    secrets: inherit

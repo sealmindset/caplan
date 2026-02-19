@@ -1,22 +1,64 @@
-### AL ###
-#Template for AL projects for Dynamics 365 Business Central
-#launch.json folder
-.vscode/
-#Cache folder
-.alcache/
-#Symbols folder
-.alpackages/
-#Snapshots folder
-.snapshots/
-#Testing Output folder
-.output/
-#Extension App-file
-*.app
-#Rapid Application Development File
-rad.json
-#Translation Base-file
-*.g.xlf
-#License-file
-*.flf
-#Test results file
-TestResults.xml
+# Terraform
+**/.terraform/*
+**/.terraform.lock.hcl
+**/*.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+
+# OS
+**/.DS_Store
+
+# Secrets - NEVER commit these
+sp.json
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+.env
+.env.*
+!.env.example
+!.env.docker.example
+!env/*/.env
+
+# IDE / Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.claude/settings.local.json
+
+# Dependencies
+**/node_modules/
+**/__pycache__/
+**/*.pyc
+**/target/
+**/.venv/
+**/venv/
+*.egg-info/
+
+# Build artifacts
+**/dist/
+**/build/
+**/coverage/
+**/.nyc_output/
+**/.next/
+**/out/
+next-env.d.ts
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Legacy/misc
+helm-config.yaml
+aspnetapp.yml
+modules/user-app/registry
+apps/typescript/frontend/out/dev/cache/turbopack/23c464985/CURRENT
+apps/typescript/frontend/out/dev/cache/turbopack/23c464985/LOG
+apps/typescript/frontend/out/dev/static/chunks/frontend_app_page_tsx_da8e6a03._.js
+apps/typescript/frontend/out/dev/static/chunks/frontend_app_page_tsx_da8e6a03._.js.map

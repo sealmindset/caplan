@@ -1,0 +1,19 @@
+name: Plan and Test Container App
+
+on:
+  push:
+    branches: [ development, main ]
+  pull_request:
+
+jobs:
+
+  ci:
+    uses: SleepNumberInc/container-app-ci-gha-workflow/.github/workflows/container-app-ci.yaml@v1
+    with:
+      # Configure for your application
+      app_path: './apps/typescript'
+      app_name: 'capacity-planner'          # Container app name
+      app_type: 'typescript'          # App type: node, python, java
+      first_env: 'dev'
+      node_version: '20'
+    secrets: inherit

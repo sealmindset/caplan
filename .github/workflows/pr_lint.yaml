@@ -1,0 +1,13 @@
+name: Lint PR Title
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+   pr_lint:
+     uses: SleepNumberInc/cicd-workflows/.github/workflows/pr_lint.yml@v1
+
+   pr-validate:
+     uses: SleepNumberInc/pull-request-external-task-validation/.github/workflows/pr_external_validation.yaml@v1
+     secrets: inherit

@@ -1,0 +1,6 @@
+export { AuthModule } from './auth.module'
+export { AppRole } from './app-role.enum'
+export { Roles } from './roles.decorator'
+export { CurrentUser } from './current-user.decorator'
+export { PrincipalParserService } from './principal-parser.service'
+export type { AppUser, EntraIdPrincipal, EntraIdClaim } from './entra-id-principal.interface'

@@ -1,0 +1,40 @@
+name: Import Resource
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: 'Name of the environment associated with the Terraform state'
+        required: true
+      terraform_id:
+        type: string
+        description: 'Terraform resource Id'
+        required: true
+      azure_id:
+        type: string
+        description: 'Azure resource Id'
+        required: true
+
+      # Optional Inputs
+      environments_folder:
+        type: string
+        description: 'Folder containing all the modules for each environment to be part of the CI/CD lifecycle'
+        default: './env'
+        required: false
+      log_level:
+        type: string
+        description: 'Provides additional logging levels in the event debugging is required (TRACE, DEBUG, INFO, WARN or ERROR)'
+        default: 'INFO'
+        required: false
+
+jobs:
+  import:
+    uses: SleepNumberInc/terraform-import-gha-workflow/.github/workflows/import_resource.yaml@v2
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      terraform_id: ${{ github.event.inputs.terraform_id }}
+      azure_id: ${{ github.event.inputs.azure_id }}
+      environments_folder: ${{ github.event.inputs.environments_folder }}
+      log_level: ${{ github.event.inputs.log_level }}
+    secrets: inherit

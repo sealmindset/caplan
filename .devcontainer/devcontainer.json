@@ -1,0 +1,70 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/alpine
+{
+  "name": "Some SN Ubuntu Dev Container",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "image": "ghcr.io/sleepnumberinc/devcontainer-base-ubuntu:1-22.04",
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22.14.0"
+    },
+    "ghcr.io/devcontainers/features/terraform": {
+      "version": "1.9.3"
+    },
+    "ghcr.io/dhoeric/features/tfsec:1": {
+      "version": "1.28.10"
+    },
+    "ghcr.io/itsmechlark/features/trivy:1": {
+      "version": "0.55.0"
+    },
+    "ghcr.io/devcontainers/features/azure-cli:1": {
+    },
+    "ghcr.io/devcontainers/features/python": {
+    }
+  },
+  // Create the volume mount source folders on the host in case the the user hasn't already installed
+  // these tools on the host, so the volume mounts don't fail
+  "initializeCommand": "mkdir -p $HOME/.claude;touch $HOME/.claude.json;mkdir -p $HOME/.azure;mkdir -p $HOME/.copilot",
+  "mounts": [
+    // https://code.visualstudio.com/remote/advancedcontainers/persist-bash-history
+    "source=projectname-bashhistory,target=/commandhistory,type=volume",
+    // map zsh config into the container
+    "source=${localEnv:HOME}/.zshrc,target=/home/vscode/.zshrc,type=bind,consistency=cached",
+    // map claude config file and directory into the container
+    "source=${localEnv:HOME}/.claude.json,target=/home/vscode/.claude.json,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
+    // map azure cli config and credentials into the container
+    "source=${localEnv:HOME}/.azure,target=/home/vscode/.azure,type=bind,consistency=cached",
+    // map copilot cli config and credentials into the container
+    "source=${localEnv:HOME}/.copilot,target=/home/vscode/.copilot,type=bind,consistency=cached"
+  ],
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // "postCreateCommand": "uname -a",
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "editorconfig.editorconfig",
+        "github.vscode-pull-request-github",
+        "github.vscode-github-actions",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "anthropic.claude-code",
+        "redhat.vscode-yaml",
+        "ms-python.python",
+        "emeraldwalk.runonsave",
+        "hashicorp.terraform",
+        "alefragnani.Bookmarks",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  },
+  "postStartCommand": "python local_terraform_init.py"
+}

@@ -1,0 +1,129 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-capacity_planner}
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - capacity-planner-net
+
+  # Mock Jira API server for development and load testing
+  mock-jira:
+    build:
+      context: ../../mock-jira
+      dockerfile: Dockerfile
+    ports:
+      - "8443:8443"
+    environment:
+      PORT: 8443
+      NODE_ENV: production
+      # Data persistence directory
+      MOCK_DATA_DIR: /data
+      # Data generation configuration
+      NUM_PROJECTS: ${MOCK_JIRA_NUM_PROJECTS:-1500}
+      NUM_INITIATIVES: ${MOCK_JIRA_NUM_INITIATIVES:-1500}
+      EPICS_PER_PROJECT_MIN: ${MOCK_JIRA_EPICS_PER_PROJECT_MIN:-200}
+      EPICS_PER_PROJECT_MAX: ${MOCK_JIRA_EPICS_PER_PROJECT_MAX:-250}
+      TASKS_PER_EPIC_MIN: ${MOCK_JIRA_TASKS_PER_EPIC_MIN:-100}
+      TASKS_PER_EPIC_MAX: ${MOCK_JIRA_TASKS_PER_EPIC_MAX:-150}
+      NUM_USERS: ${MOCK_JIRA_NUM_USERS:-500}
+      DATA_SEED: ${MOCK_JIRA_DATA_SEED:-capacity-planner-mock-2024}
+    volumes:
+      - mock_jira_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8443/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - capacity-planner-net
+    profiles:
+      - mock
+
+  app:
+    build: .
+    ports:
+      - "8001:8080"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-capacity_planner}
+      PORT: 8080
+      # Use development mode when testing with mock Jira to bypass auth
+      # Set NODE_ENV=production in .env for production deployments
+      NODE_ENV: ${NODE_ENV:-development}
+      # Jira Configuration
+      # Use mock-jira service when running with --profile mock, otherwise use real Jira
+      # Internal: http://mock-jira:8443 | External (for testing): http://localhost:8443
+      JIRA_BASE_URL: ${JIRA_BASE_URL:-http://mock-jira:8443}
+      JIRA_EMAIL: ${JIRA_EMAIL:-mock@test.com}
+      JIRA_API_TOKEN: ${JIRA_API_TOKEN:-mock-token}
+      JIRA_DOMAIN: ${JIRA_DOMAIN:-sntech}
+      JIRA_PROJECT_IDS: ${JIRA_PROJECT_IDS:-}
+      # Jira Custom Field Mappings
+      JIRA_IT_OWNER_FIELD: ${JIRA_IT_OWNER_FIELD:-customfield_10000}
+      JIRA_BUSINESS_CHAMPION_FIELD: ${JIRA_BUSINESS_CHAMPION_FIELD:-customfield_10078}
+      JIRA_WORKSTREAM_FIELD: ${JIRA_WORKSTREAM_FIELD:-customfield_10447}
+      JIRA_INSERVICE_DATE_FIELD: ${JIRA_INSERVICE_DATE_FIELD:-customfield_10121}
+      JIRA_START_DATE_FIELD: ${JIRA_START_DATE_FIELD:-customfield_10015}
+      JIRA_END_DATE_FIELD: ${JIRA_END_DATE_FIELD:-customfield_10685}
+      JIRA_PAR_FIELD: ${JIRA_PAR_FIELD:-customfield_10132}
+      JIRA_HEALTH_STATUS_FIELD: ${JIRA_HEALTH_STATUS_FIELD:-customfield_10451}
+      JIRA_BUSINESS_VALUE_FIELD: ${JIRA_BUSINESS_VALUE_FIELD:-customfield_10200}
+      JIRA_CAPITAL_EXPENSE_FIELD: ${JIRA_CAPITAL_EXPENSE_FIELD:-customfield_10450}
+      JIRA_EPIC_ISSUE_TYPE_ID: ${JIRA_EPIC_ISSUE_TYPE_ID:-10000}
+      JIRA_INITIATIVE_ISSUE_TYPE_ID: ${JIRA_INITIATIVE_ISSUE_TYPE_ID:-10001}
+      # Tempo Configuration
+      TEMPO_API_TOKEN: ${TEMPO_API_TOKEN:-}
+      # Authentication
+      AUTH_ENABLED: ${AUTH_ENABLED:-false}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - capacity-planner-net
+
+  # Frontend development server (optional - for local development with hot reload)
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    environment:
+      NODE_ENV: development
+      # Next.js dev server binds to all interfaces
+      HOSTNAME: "0.0.0.0"
+    depends_on:
+      - app
+    networks:
+      - capacity-planner-net
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:
+  frontend_node_modules:
+  mock_jira_data:
+
+networks:
+  capacity-planner-net:
+    driver: bridge

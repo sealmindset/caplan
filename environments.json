@@ -1,0 +1,14 @@
+{
+    "dev": {
+        "next": "STOP"
+    },
+    "tst": {
+        "next": "stg"
+    },
+    "stg": {
+        "next": "prd"
+    },
+    "prd": {
+        "next": "STOP"
+    }
+}

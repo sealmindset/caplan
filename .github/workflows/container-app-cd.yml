@@ -1,0 +1,13 @@
+name: Apply and Deploy Container App
+
+on:
+  deployment:
+
+jobs:
+  cd:
+    uses: SleepNumberInc/container-app-cd-gha-workflow/.github/workflows/container-app-cd.yaml@v1
+    with:
+      # Configure for your application
+      app_path: './apps/typescript'
+      app_name: 'capacity-planner'          # Container app name
+    secrets: inherit

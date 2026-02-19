@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "emeraldwalk.runonsave",
+        "redhat.vscode-yaml",
+        "EditorConfig.EditorConfig",
+        "hashicorp.terraform"
+    ]
+}
