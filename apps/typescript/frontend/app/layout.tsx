@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import { AIWrapper } from '../components/ai/AIWrapper'
 
 export const metadata: Metadata = {
   title: 'Cap Planner - Enterprise Capacity Planning',
@@ -13,7 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AIWrapper>
+          {children}
+        </AIWrapper>
+      </body>
     </html>
   )
 }
