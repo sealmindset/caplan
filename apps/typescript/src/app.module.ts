@@ -7,6 +7,7 @@ import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth';
 import { UserController } from './user/user.controller';
 import { AIModule } from './ai/ai.module';
+import { StatusModule } from './status/status.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AIModule } from './ai/ai.module';
     AuthModule,
     AdminModule,
     AIModule,
+    StatusModule,
   ],
   controllers: [UserController],
 })

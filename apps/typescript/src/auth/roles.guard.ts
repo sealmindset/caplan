@@ -11,6 +11,7 @@ import { Reflector } from '@nestjs/core'
 import { AppRole } from './app-role.enum'
 import { AppUser } from './entra-id-principal.interface'
 import { ROLES_KEY } from './roles.decorator'
+import { IS_PUBLIC_KEY } from './public.decorator'
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -22,6 +23,16 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
+    // Check if route is marked as public
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ])
+
+    if (isPublic) {
+      return true
+    }
+
     const requiredRoles = this.reflector.getAllAndOverride<AppRole[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
