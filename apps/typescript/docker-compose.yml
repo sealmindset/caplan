@@ -57,6 +57,45 @@ services:
     profiles:
       - mock
 
+  # Mock Tempo API server for development and load testing
+  mock-tempo:
+    build:
+      context: ../../mock-tempo
+      dockerfile: Dockerfile
+    ports:
+      - "8444:8444"
+    environment:
+      PORT: 8444
+      NODE_ENV: production
+      # Data generation configuration - must match mock-jira
+      NUM_USERS: ${MOCK_TEMPO_NUM_USERS:-500}
+      NUM_TEAMS: ${MOCK_TEMPO_NUM_TEAMS:-20}
+      WORKLOGS_PER_ISSUE_MIN: ${MOCK_TEMPO_WORKLOGS_PER_ISSUE_MIN:-30}
+      WORKLOGS_PER_ISSUE_MAX: ${MOCK_TEMPO_WORKLOGS_PER_ISSUE_MAX:-50}
+      PLANS_PER_USER_MIN: ${MOCK_TEMPO_PLANS_PER_USER_MIN:-2}
+      PLANS_PER_USER_MAX: ${MOCK_TEMPO_PLANS_PER_USER_MAX:-6}
+      # Seed for reproducible data generation - MUST match mock-jira
+      DATA_SEED: ${MOCK_JIRA_DATA_SEED:-capacity-planner-mock-2024}
+      # Date range - must match mock-jira
+      START_YEAR: ${MOCK_TEMPO_START_YEAR:-2022}
+      CURRENT_YEAR: ${MOCK_TEMPO_CURRENT_YEAR:-2026}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8444/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - capacity-planner-net
+    profiles:
+      - mock
+
   app:
     build: .
     ports:
@@ -89,7 +128,10 @@ services:
       JIRA_EPIC_ISSUE_TYPE_ID: ${JIRA_EPIC_ISSUE_TYPE_ID:-10000}
       JIRA_INITIATIVE_ISSUE_TYPE_ID: ${JIRA_INITIATIVE_ISSUE_TYPE_ID:-10001}
       # Tempo Configuration
-      TEMPO_API_TOKEN: ${TEMPO_API_TOKEN:-}
+      # Use mock-tempo service when running with --profile mock, otherwise use real Tempo
+      # Internal: http://mock-tempo:8444 | External (for testing): http://localhost:8444
+      TEMPO_BASE_URL: ${TEMPO_BASE_URL:-http://mock-tempo:8444}
+      TEMPO_API_TOKEN: ${TEMPO_API_TOKEN:-mock-token}
       # Authentication
       AUTH_ENABLED: ${AUTH_ENABLED:-false}
     depends_on:
